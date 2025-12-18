@@ -29,10 +29,18 @@
     ```
     
     *План выполнения:*
-    [Вставьте план выполнения]
+    ```
+    Bitmap Heap Scan on t_books  (cost=21.03..1336.08 rows=750 width=33) (actual time=0.616..0.617 rows=1 loops=1)
+    Recheck Cond: (to_tsvector('english'::regconfig, (title)::text) @@ '''expert'''::tsquery)
+    Heap Blocks: exact=1
+    ->  Bitmap Index Scan on t_books_fts_idx  (cost=0.00..20.84 rows=750 width=0) (actual time=0.569..0.569 rows=1 loops=1)
+    Index Cond: (to_tsvector('english'::regconfig, (title)::text) @@ '''expert'''::tsquery)
+    Planning Time: 1.757 ms
+    Execution Time: 0.715 ms
+    ```
     
     *Объясните результат:*
-    [Ваше объяснение]
+    Индекс применился, но так как он хранит список лексем, то приходится проверять кандидатов – в данном случае 1, поэтому план для нас идеальный.
 
 6. Удалите индекс:
     ```sql
@@ -90,10 +98,15 @@
      ```
      
      *План выполнения:*
-     [Вставьте план выполнения]
+     ```
+    Index Scan using t_lookup_pk on t_lookup  (cost=0.42..8.44 rows=1 width=23) (actual time=0.081..0.082 rows=1 loops=1)
+    Index Cond: ((item_key)::text = '0000000455'::text)
+    Planning Time: 5.123 ms
+    Execution Time: 0.129 ms
+    ```
      
      *Объясните результат:*
-     [Ваше объяснение]
+     Поиск по ключу, поэтому просто индекс скан – дешево, быстро.
 
 14. Выполните поиск по ключу в кластеризованной таблице:
      ```sql
@@ -102,10 +115,15 @@
      ```
      
      *План выполнения:*
-     [Вставьте план выполнения]
+     ```
+    Index Scan using t_lookup_clustered_pkey on t_lookup_clustered  (cost=0.42..8.44 rows=1 width=23) (actual time=0.161..0.163 rows=1 loops=1)
+    Index Cond: ((item_key)::text = '0000000455'::text)
+    Planning Time: 4.499 ms
+    Execution Time: 0.254 ms
+    ```
      
      *Объясните результат:*
-     [Ваше объяснение]
+     Аналогично предыдущему пункту.
 
 15. Создайте индекс по значению для обычной таблицы:
      ```sql
@@ -125,10 +143,15 @@
      ```
      
      *План выполнения:*
-     [Вставьте план выполнения]
+     ```
+    Index Scan using t_lookup_value_idx on t_lookup  (cost=0.42..8.44 rows=1 width=23) (actual time=0.216..0.216 rows=0 loops=1)
+    Index Cond: ((item_value)::text = 'T_BOOKS'::text)
+    Planning Time: 1.608 ms
+    Execution Time: 0.320 ms
+    ```
      
      *Объясните результат:*
-     [Ваше объяснение]
+     Тут все то же самое, как и с `item_key`, так как мы предварительно создали btree индекс для `item_value`.
 
 18. Выполните поиск по значению в кластеризованной таблице:
      ```sql
@@ -137,12 +160,17 @@
      ```
      
      *План выполнения:*
-     [Вставьте план выполнения]
+     ```
+    Index Scan using t_lookup_clustered_value_idx on t_lookup_clustered  (cost=0.42..8.44 rows=1 width=23) (actual time=0.156..0.156 rows=0 loops=1)
+    Index Cond: ((item_value)::text = 'T_BOOKS'::text)
+    Planning Time: 1.452 ms
+    Execution Time: 0.235 ms
+    ```
      
      *Объясните результат:*
-     [Ваше объяснение]
+     Аналогично.
 
 19. Сравните производительность поиска по значению в обычной и кластеризованной таблицах:
      
      *Сравнение:*
-     [Ваше сравнение]
+     Сравнивать нечего – планы идентичны.
